@@ -20,7 +20,7 @@ def get_greenhouse_jobs(company_slug: str):
         if "software" in job["title"].lower() or "intern" in job["title"].lower():
             parsed_jobs.append({
                 "title": job["title"],
-               # "url": job["absolute_url"],
+                "url": job["absolute_url"],
             })
 
     return {

@@ -50,7 +50,15 @@ export const Companies = () => {
       <h1>Companies (Stripe) – {data.total} jobs</h1>
       <ul>
         {data.jobs.map((job, i) => (
-          <li key={i}>{job.title}</li>
+          <li 
+          className="border border-white p-2 rounded-md mt-2"
+          key={i}
+          >
+            <a href={job.url}>
+              {job.title}
+            </a>
+
+          </li>
         ))}
       </ul>
     </div>
