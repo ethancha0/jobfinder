@@ -2,6 +2,13 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+## Environment variables
+
+This app talks to the backend using `NEXT_PUBLIC_API_URL`.
+
+- **Local dev**: default is `http://localhost:8000` (and `.env.local` can override it).
+- **Vercel (Production/Preview)**: set `NEXT_PUBLIC_API_URL` to your Render backend URL (e.g. `https://jobfinder-h8b6.onrender.com`).
+
 First, run the development server:
 
 ```bash
