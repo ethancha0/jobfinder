@@ -30,7 +30,7 @@ def get_all_greenhouse_jobs(db:Session = Depends(get_db)):
     for company in companies:
         url =  f"https://boards-api.greenhouse.io/v1/boards/{company.board_token}/jobs?content=true"
         try:
-            response = requests.get(url, timeout=6)
+            response = requests.get(url, timeout=(5,20))
             totalCompaniesSearched += 1
 
             if response.status_code != 200:
@@ -70,10 +70,10 @@ def get_all_greenhouse_jobs(db:Session = Depends(get_db)):
 
 @router.get("/{company_slug}")
 def get_greenhouse_jobs(company_slug: str):
-    url = "https://boards-api.greenhouse.io/v1/boards/{company_slug}/jobs?content=true"
+    url = "https://boards-api.greenhouse.io/v1/boards/{company_slug}/jobs"
     url = url.format(company_slug=company_slug)
     try:
-        response = requests.get(url, timeout=6)
+        response = requests.get(url, timeout=(5,20))
     except requests.exceptions.Timeout:
         raise HTTPException(status_code=504, detail="Greenhouse request timed out")
     except requests.exceptions.RequestException as e:
