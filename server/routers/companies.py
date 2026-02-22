@@ -24,7 +24,7 @@ class CompanyCreate(BaseModel):
     name: str
     board_token: str
 
-`@router.post`("/bulk")
+@router.post("/bulk")
 def add_companies(companies: list[CompanyCreate], db: Session = Depends(get_db)):
     for company in companies:
         existing = db.query(Company).filter(
@@ -39,5 +39,4 @@ def add_companies(companies: list[CompanyCreate], db: Session = Depends(get_db))
                 )
             )
     db.commit()
-    return {"status":"ok"}
     return {"status":"ok"}
