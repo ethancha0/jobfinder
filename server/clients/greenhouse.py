@@ -20,12 +20,13 @@ def get_db():
 @router.get("/alljobs")
 def get_all_greenhouse_jobs(db:Session = Depends(get_db)):
 
-    companies = db.query(Company).all()
+    companies = db.query(Company).filter(Company.active.is_(True)).all()
 
     softwareInternJobs = []
     totalJobsSearched = 0
     totalCompaniesSearched = 0 
     totalJobErrors = 0 # invalid slugs 
+    failures: list[dict] = []
 
     for company in companies:
         url =  f"https://boards-api.greenhouse.io/v1/boards/{company.board_token}/jobs?content=true"
@@ -35,6 +36,13 @@ def get_all_greenhouse_jobs(db:Session = Depends(get_db)):
 
             if response.status_code != 200:
                 totalJobErrors += 1
+                failures.append(
+                    {
+                        "companyName": company.name,
+                        "boardToken": company.board_token,
+                        "status": response.status_code,
+                    }
+                )
                 continue # skip bad jobs for now
             # return {"error": "Failed to fetch every softare intern jobs"}
 
@@ -52,9 +60,23 @@ def get_all_greenhouse_jobs(db:Session = Depends(get_db)):
                     )
         except requests.exceptions.Timeout:
             print(f"Timeout for {company}")
+            failures.append(
+                {
+                    "companyName": company.name,
+                    "boardToken": company.board_token,
+                    "error": "timeout",
+                }
+            )
             continue
         except requests.exceptions.RequestException as e:
             print(f"Request failed for {company}: {e}")
+            failures.append(
+                {
+                    "companyName": company.name,
+                    "boardToken": company.board_token,
+                    "error": str(e),
+                }
+            )
             continue
 
     return {
@@ -62,6 +84,8 @@ def get_all_greenhouse_jobs(db:Session = Depends(get_db)):
         "total": len(softwareInternJobs),
         "totalSearched": totalJobsSearched,
         "companiesSearched": totalCompaniesSearched,
+        "jobErrors": totalJobErrors,
+        "failures": failures[:25],
     }
 
 
