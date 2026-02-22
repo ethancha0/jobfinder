@@ -1,11 +1,24 @@
 # this file loads in the companies 
 
 from fastapi import APIRouter, Depends
+from pydantic import BaseModel, ConfigDict
 from sqlalchemy.orm import Session
+from datetime import datetime
+from uuid import UUID
+
 from db.database import SessionLocal
 from db.models import Company
 
 router = APIRouter()
+
+class CompanySchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    name: str
+    board_token: str
+    active: bool
+    created_at: datetime | None = None
 
 def get_db():
     db = SessionLocal()
@@ -14,11 +27,9 @@ def get_db():
     finally:
         db.close()
 
-@router.get("/")
+@router.get("/", response_model=list[CompanySchema])
 def get_companies(db: Session = Depends(get_db)):
     return db.query(Company).all()
-
-from pydantic import BaseModel
 
 class CompanyCreate(BaseModel):
     name: str
