@@ -18,19 +18,26 @@ def get_db():
 def get_companies(db: Session = Depends(get_db)):
     return db.query(Company).all()
 
-@router.post("/bulk")
-def add_companies(companies: list[dict], db: Session = Depends(get_db)):
+from pydantic import BaseModel
+
+class CompanyCreate(BaseModel):
+    name: str
+    board_token: str
+
+`@router.post`("/bulk")
+def add_companies(companies: list[CompanyCreate], db: Session = Depends(get_db)):
     for company in companies:
         existing = db.query(Company).filter(
-            Company.board_token == company["board_token"]
+            Company.board_token == company.board_token
         ).first()
 
         if not existing:
             db.add(
                 Company(
-                    name=company["name"],
-                    board_token=company["board_token"]
+                    name=company.name,
+                    board_token=company.board_token
                 )
             )
     db.commit()
+    return {"status":"ok"}
     return {"status":"ok"}
