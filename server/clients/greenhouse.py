@@ -1,5 +1,5 @@
 import requests
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 
@@ -29,10 +29,10 @@ def get_all_greenhouse_jobs(db:Session = Depends(get_db)):
 
     for company in companies:
         url =  f"https://boards-api.greenhouse.io/v1/boards/{company.board_token}/jobs?content=true"
-        response = requests.get(url, timeout=6)
-        totalCompaniesSearched += 1
-
         try:
+            response = requests.get(url, timeout=6)
+            totalCompaniesSearched += 1
+
             if response.status_code != 200:
                 totalJobErrors += 1
                 continue # skip bad jobs for now
@@ -45,8 +45,8 @@ def get_all_greenhouse_jobs(db:Session = Depends(get_db)):
                     softwareInternJobs.append({
                         "title": job["title"],
                         "companyName": company.name,
-                        "location": job["location"],
-                        "published": job.get("first_published"),
+                        "location": job["location"],    # using [] assumes key must exist, error if missing
+                        "published": job.get("first_published"), # using .get() returns none if missing
                         "url": job["absolute_url"]
                     }
                     )
@@ -72,12 +72,20 @@ def get_all_greenhouse_jobs(db:Session = Depends(get_db)):
 def get_greenhouse_jobs(company_slug: str):
     url = "https://boards-api.greenhouse.io/v1/boards/{company_slug}/jobs?content=true"
     url = url.format(company_slug=company_slug)
-    response = requests.get(url, timeout=6)
+    try:
+        response = requests.get(url, timeout=6)
+    except requests.exceptions.Timeout:
+        raise HTTPException(status_code=504, detail="Greenhouse request timed out")
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=502, detail=f"Greenhouse request failed: {e}")
     
     if response.status_code != 200:
         return {"error": "Failed to fetch jobs"}
     
-    jobs = response.json()
+    try:
+        jobs = response.json()
+    except ValueError:
+        raise HTTPException(status_code=502, detail="Greenhouse returned invalid JSON")
 
     parsed_jobs = []
     for job in jobs["jobs"]:
