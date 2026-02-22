@@ -10,12 +10,12 @@ type Job = {
   published: string;
   url: string;
 };
-type CompaniesResponse = { jobs: Job[]; total: number };
+type CompaniesResponse = { jobs: Job[]; total: number; totalSearched: number; companiesSearched:number };
 
 async function fetchCompanies(): Promise<CompaniesResponse | null> {
   try {
     const apiBase = getApiBaseUrl();
-    const res = await fetch(`${apiBase}/greenhouse/stripe`);
+    const res = await fetch(`${apiBase}/greenhouse/alljobs`);
     if (!res.ok) {
       throw new Error("Failed to fetch companies");
     }
@@ -53,7 +53,8 @@ export const Companies = () => {
 
   return (
     <div>
-      <h1>Companies (Stripe) – {data.total} jobs</h1>
+      <h1>All Software Intern Positions: {data.total}</h1>
+      <p>Out of {data.totalSearched} jobs searched and {data.companiesSearched} companies</p>
       <ul className="space-y-2">
         {data.jobs.map((job, i) => (
           <li 

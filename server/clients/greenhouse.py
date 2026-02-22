@@ -1,19 +1,91 @@
 import requests
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+
+from db.database import SessionLocal
+from db.models import Company
 
 router = APIRouter()
+
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+@router.get("/alljobs")
+def get_all_greenhouse_jobs(db:Session = Depends(get_db)):
+
+    companies = db.query(Company).all()
+
+    softwareInternJobs = []
+    totalJobsSearched = 0
+    totalCompaniesSearched = 0 
+    totalJobErrors = 0 # invalid slugs 
+
+    for company in companies:
+        url =  f"https://boards-api.greenhouse.io/v1/boards/{company.board_token}/jobs?content=true"
+        try:
+            response = requests.get(url, timeout=6)
+            totalCompaniesSearched += 1
+
+            if response.status_code != 200:
+                totalJobErrors += 1
+                continue # skip bad jobs for now
+            # return {"error": "Failed to fetch every softare intern jobs"}
+
+            allJobs = response.json()
+            for job in allJobs.get("jobs", []):
+                totalJobsSearched += 1
+                if "software" in job["title"].lower() and "intern" in job["title"].lower():
+                    softwareInternJobs.append({
+                        "title": job["title"],
+                        "companyName": company.name,
+                        "location": job["location"],    # using [] assumes key must exist, error if missing
+                        "published": job.get("first_published"), # using .get() returns none if missing
+                        "url": job["absolute_url"]
+                    }
+                    )
+        except requests.exceptions.Timeout:
+            print(f"Timeout for {company}")
+            continue
+        except requests.exceptions.RequestException as e:
+            print(f"Request failed for {company}: {e}")
+            continue
+
+    return {
+        "jobs": softwareInternJobs,
+        "total": len(softwareInternJobs),
+        "totalSearched": totalJobsSearched,
+        "companiesSearched": totalCompaniesSearched,
+    }
+
+
+
 
 
 @router.get("/{company_slug}")
 def get_greenhouse_jobs(company_slug: str):
     url = "https://boards-api.greenhouse.io/v1/boards/{company_slug}/jobs?content=true"
     url = url.format(company_slug=company_slug)
-    response = requests.get(url)
+    try:
+        response = requests.get(url, timeout=6)
+    except requests.exceptions.Timeout:
+        raise HTTPException(status_code=504, detail="Greenhouse request timed out")
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=502, detail=f"Greenhouse request failed: {e}")
     
     if response.status_code != 200:
         return {"error": "Failed to fetch jobs"}
     
-    jobs = response.json()
+    try:
+        jobs = response.json()
+    except ValueError:
+        raise HTTPException(status_code=502, detail="Greenhouse returned invalid JSON")
 
     parsed_jobs = []
     for job in jobs["jobs"]:
