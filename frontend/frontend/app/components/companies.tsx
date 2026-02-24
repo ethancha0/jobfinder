@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import { getApiBaseUrl } from "../lib/apiBase";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 type Job = {
   title: string;
@@ -11,6 +13,8 @@ type Job = {
   url: string;
 };
 type CompaniesResponse = { jobs: Job[]; total: number; totalSearched: number; companiesSearched:number };
+
+
 
 async function fetchCompanies(): Promise<CompaniesResponse | null> {
   try {
@@ -26,39 +30,65 @@ async function fetchCompanies(): Promise<CompaniesResponse | null> {
   }
 }
 
+
+
+
 export const Companies = () => {
   const [data, setData] = useState<CompaniesResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [searchInput, setSearchInput] = useState("");
+  const [query, setQuery] = useState("");
+  const [jobs, setJobs] = useState();
 
-  useEffect(() => {
-    let cancelled = false;
-    fetchCompanies().then((result) => {
-      if (cancelled) return;
-      setLoading(false);
-      if (result === null) {
-        setError("Failed to load companies");
-      } else {
-        setData(result);
-      }
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
-  if (!data) return null;
-
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setQuery(searchInput.trim());
+    console.log(searchInput)
+  };
   return (
+
+
     <div>
-      <h1>All Software Intern Positions: {data.total}</h1>
-      <p>Out of {data.totalSearched} jobs searched and {data.companiesSearched} companies</p>
+
+        <form onSubmit={handleSearch}>
+          <Input 
+          type="search"
+          placeholder="Search..." 
+          className="p-8 w-md" 
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          />
+          <Button type="submit" className="glass-card">Search</Button>
+        </form>
+
+        <Button 
+        className="glass-card p-4"
+        type="submit" 
+        onClick={() => setShowJobs(true)}>
+          Show all Jobs 
+        </Button>
+
+      
+      {/*query ? (
+        <p className="glass-card mt-4 mb-6">
+          Showing {filteredJobs.length} result{filteredJobs.length === 1 ? "" : "s"}{" "}
+          for &quot;{query}&quot;
+        </p>
+      ) : null*/}
+        
+  
+
+        {/*jobs.length && (
+        <div>
+      <h1 className="glass-card mb-2">
+        All Software Intern Positions: 
+      </h1>
+      <p className="glass-card mb-10"> Out of {data.totalSearched} jobs searched and {data.companiesSearched} companies</p>
       <ul className="space-y-2">
-        {data.jobs.map((job, i) => (
+        {filteredJobs.map((job, i) => (
           <li 
-          className="border border-white p-2 rounded-md"
+          className="glass-card"
           key={i}
           >
             <a href={job.url} className="block">
@@ -75,6 +105,10 @@ export const Companies = () => {
           </li>
         ))}
       </ul>
+      </div>
+        )*/}
+
     </div>
+
   );
 };
