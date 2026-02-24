@@ -15,7 +15,7 @@ class Company(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
 
-class Job(Base):
+class Jobs(Base):
     __tablename__ = "jobs"
     __table_args__ = (
         UniqueConstraint("company_id", "greenhouse_job_id", name="uq_jobs_company_greenhouse_id"),

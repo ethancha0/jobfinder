@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 
 from db.database import SessionLocal
-from db.models import Company
+from db.models import Company, Jobs
 
 router = APIRouter()
 
@@ -22,17 +22,13 @@ def query_jobs(
     userQuery: str = Query(default="", description="Search query"),
     db: Session = Depends(get_db)
 ):
+    # ilike() for case insensitive searches
+    jobs = db.query(Jobs).filter(Jobs.title.ilike(f"%{userQuery}%")).all()
 
-   
-    companies = db.query(Job).all()
-
-
-    dbQuery = db.query(Company)
-
-    if userQuery:
-        dbQuery = dbQuery.filter(Company.title.ilike(f"%{q}%"))
-
- 
+    return {
+        "jobs": jobs,
+        "count": len(jobs)
+        }
 
 
 

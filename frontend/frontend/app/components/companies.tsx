@@ -14,7 +14,7 @@ type Job = {
   url: string;
 };
 type CompaniesResponse = { jobs: Job[]; total: number; totalSearched: number; companiesSearched:number };
-
+type JobSearchResponse ={ jobs: Job[]; count: number;};
 
 
 async function fetchCompanies(): Promise<CompaniesResponse | null> {
@@ -33,20 +33,42 @@ async function fetchCompanies(): Promise<CompaniesResponse | null> {
 
 
 
-
 export const Companies = () => {
   const [data, setData] = useState<CompaniesResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchInput, setSearchInput] = useState("");
   const [query, setQuery] = useState("");
-  const [jobs, setJobs] = useState();
+  const [jobs, setJobs] = useState <JobSearchResponse | null> (null);
 
-  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSearch = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setQuery(searchInput.trim());
-    console.log(searchInput)
+    setQuery(searchInput)
+
+    try{
+      const apiBase = getApiBaseUrl();
+      const res = await fetch(`${apiBase}/greenhouse/queryjobs?userQuery=${encodeURIComponent(searchInput)}`);
+
+      if(!res.ok){
+        throw new Error("Failed to query jobs");
+      }
+     const parsed =  await res.json();
+    setJobs(parsed)
+      console.log(parsed)
+      return
+    
+
+    }catch(error){
+      console.error("error", error);
+      return null
+    }
+    
+
+
+
   };
+
+
   return (
 
 
@@ -67,7 +89,8 @@ export const Companies = () => {
         <Button 
         className="glass-card p-4"
         type="submit" 
-        onClick={() => setShowJobs(true)}>
+        //onClick={() => setShowJobs(true)}
+        >
           Show all Jobs 
         </Button>
 
@@ -81,21 +104,21 @@ export const Companies = () => {
         
   
 
-        {/*jobs.length && (
+        {jobs && (
         <div>
       <h1 className="glass-card mb-2">
-        All Software Intern Positions: 
+         Showing results for {query}
       </h1>
-      <p className="glass-card mb-10"> Out of {data.totalSearched} jobs searched and {data.companiesSearched} companies</p>
+      <p className="glass-card mb-10"> {jobs.count} jobs found </p>
       <ul className="space-y-2">
-        {filteredJobs.map((job, i) => (
+        {jobs.jobs.map((job, i) => (
           <li 
           className="glass-card"
           key={i}
           >
             <a href={job.url} className="block">
               <div className="flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6">
-                <span className="font-medium">{job.companyName}</span>
+                <span className="font-medium">{job.company_name}</span>
                 <span>{job.title}</span>
                 <span className="text-sm opacity-80">
                   {job.location?.name ?? "Remote/Unspecified"}
@@ -108,7 +131,7 @@ export const Companies = () => {
         ))}
       </ul>
       </div>
-        )*/}
+        )}
 
     </div>
 
