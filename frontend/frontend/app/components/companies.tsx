@@ -5,6 +5,7 @@ import { getApiBaseUrl } from "../lib/apiBase";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
+
 type Job = {
   title: string;
   companyName: string;
@@ -50,6 +51,7 @@ export const Companies = () => {
 
 
     <div>
+ 
 
         <form onSubmit={handleSearch}>
           <Input 

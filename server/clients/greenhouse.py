@@ -1,5 +1,5 @@
 import requests
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 
@@ -15,6 +15,28 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+@router.get("/queryjobs")
+def query_jobs(
+    userQuery: str = Query(default="", description="Search query"),
+    db: Session = Depends(get_db)
+):
+
+   
+    companies = db.query(Job).all()
+
+
+    dbQuery = db.query(Company)
+
+    if userQuery:
+        dbQuery = dbQuery.filter(Company.title.ilike(f"%{q}%"))
+
+ 
+
+
+
+
 
 
 @router.get("/alljobs")
