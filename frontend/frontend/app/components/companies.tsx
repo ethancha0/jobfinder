@@ -12,9 +12,31 @@ type Job = {
   location: { name: string } | null;
   published: string | null;
   url: string | null;
+  content: string | null;
 };
 type CompaniesResponse = { jobs: Job[]; total: number; totalSearched: number; companiesSearched:number };
 type JobSearchResponse ={ jobs: Job[]; count: number;};
+
+// date formatter for readability
+function formatPublished(published: string | null): string {
+  if (!published) return "Unknown";
+  const d = new Date(published);
+  if (Number.isNaN(d.getTime())) return published;
+
+  const absolute = new Intl.DateTimeFormat(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  }).format(d);
+
+  const diffDays = Math.round((d.getTime() - Date.now()) / 86_400_000);
+  const relative = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" }).format(
+    diffDays,
+    "day",
+  );
+
+  return `${absolute} (${relative})`;
+}
 
 
 async function fetchCompanies(): Promise<CompaniesResponse | null> {
@@ -98,20 +120,22 @@ export const Companies = () => {
          Showing results for "{query}"
       </h1>
       <p className="glass-card mb-10"> {jobs.count} jobs found </p>
-      <ul className="space-y-2">
+
+
+      <ul className="space-y-2 p-4">
         {jobs.jobs.map((job, i) => (
           <li 
-          className="glass-card"
+          className="glass-card p-6"
           key={i}
           >
             <a href={job.url ?? undefined} className="block">
-              <div className="flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6">
-                <span className="font-medium">{job.companyName}</span>
-                <span>{job.title}</span>
-                <span className="text-sm opacity-80">
+              <div className=" gap-9 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6">
+                <p className="font-medium">{job.title}</p>
+                <p>{job.companyName}</p>
+                <p className="text-sm opacity-80">
                   {job.location?.name ?? "Remote/Unspecified"}
-                </span>
-                <span className="text-xs opacity-70">{job.published ?? ""}</span>
+                </p>
+                <span className="text-xs opacity-70">Posted: {formatPublished(job.published)}</span>
               </div>
             </a>
 

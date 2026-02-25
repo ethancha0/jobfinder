@@ -1,6 +1,7 @@
 import requests
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
+from sqlalchemy import desc
 
 
 from db.database import SessionLocal
@@ -22,13 +23,35 @@ def query_jobs(
     userQuery: str = Query(default="", description="Search query"),
     db: Session = Depends(get_db)
 ):
-    # ilike() for case insensitive searches
-    jobs = db.query(Jobs).filter(Jobs.title.ilike(f"%{userQuery}%")).all()
+    # Normalize DB results to match the shape returned by /alljobs
+    # (companies.tsx expects companyName, location.name, published, url).
+    rows = (
+        db.query(Jobs, Company.name)
+        .join(Company, Company.id == Jobs.company_id)
+        .filter(Jobs.title.ilike(f"%{userQuery}%"))
+        .order_by(desc(Jobs.published_at)) #order by date posted (descending)
+        .all()
+    )
+
+    parsed_jobs: list[dict] = []
+    for job, company_name in rows:
+        published = job.published_at.isoformat() if job.published_at else None
+        location = {"name": job.location_name} if job.location_name else None
+        parsed_jobs.append(
+            {
+                "title": job.title,
+                "companyName": company_name,
+                "location": location,
+                "published": published,
+                "url": job.url,
+                "content": job.content,
+            }
+        )
 
     return {
-        "jobs": jobs,
-        "count": len(jobs)
-        }
+        "jobs": parsed_jobs,
+        "count": len(parsed_jobs),
+    }
 
 
 

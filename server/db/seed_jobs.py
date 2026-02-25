@@ -5,7 +5,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from db.database import Base, SessionLocal, engine
-from db.models import Company, Job  # assume you have these ORM models
+from db.models import Company, Jobs
 
 
 GREENHOUSE_TIMEOUT = (5, 20)  # (connect, read)
@@ -32,6 +32,7 @@ def seed_recent_jobs(days: int = 14) -> dict:
     try:
         with engine.begin() as conn:
             conn.execute(text("ALTER TABLE jobs ALTER COLUMN greenhouse_job_id TYPE BIGINT"))
+            conn.execute(text("ALTER TABLE jobs ADD COLUMN IF NOT EXISTS content TEXT"))
     except Exception:
         # Ignore if table/column doesn't exist yet or DB doesn't support it
         pass
@@ -64,13 +65,14 @@ def seed_recent_jobs(days: int = 14) -> dict:
                     continue
 
                 payload = res.json()
-                jobs = payload.get("jobs", [])
+                gh_jobs = payload.get("jobs", [])
 
-                for gh_job in jobs:
+                for gh_job in gh_jobs:
                     gh_id = gh_job.get("id")
                     title = gh_job.get("title") or ""
                     absolute_url = gh_job.get("absolute_url") or ""
                     first_published = parse_first_published(gh_job.get("first_published"))
+                    content = gh_job.get("content")
 
                     if gh_id is None:
                         continue
@@ -87,11 +89,12 @@ def seed_recent_jobs(days: int = 14) -> dict:
 
                     location_obj = gh_job.get("location") or {}
                     location_name = location_obj.get("name") if isinstance(location_obj, dict) else str(location_obj)
+                    location_name = location_name or ""
 
                     # UPSERT: find existing by (company_id, greenhouse_job_id)
                     existing = (
-                        db.query(Job)
-                        .filter(Job.company_id == company.id, Job.greenhouse_job_id == gh_id)
+                        db.query(Jobs)
+                        .filter(Jobs.company_id == company.id, Jobs.greenhouse_job_id == gh_id)
                         .one_or_none()
                     )
 
@@ -102,8 +105,9 @@ def seed_recent_jobs(days: int = 14) -> dict:
                         existing.published_at = first_published
                         existing.url = absolute_url
                         existing.is_active = True
+                        existing.content = content
                     else:
-                        db.add(Job(
+                        db.add(Jobs(
                             company_id=company.id,
                             greenhouse_job_id=gh_id,
                             title=title,
@@ -111,6 +115,7 @@ def seed_recent_jobs(days: int = 14) -> dict:
                             published_at=first_published,
                             url=absolute_url,
                             is_active=True,
+                            content=content,
                         ))
 
                     upserted += 1
