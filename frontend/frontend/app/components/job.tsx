@@ -9,7 +9,7 @@ interface jobProps{
 
 }
 
-const job = ({company, position, location, date}: jobProps) => {
+const Job = ({company, position, location, date}: jobProps) => {
   return (
     <div>
       

@@ -10,8 +10,8 @@ type Job = {
   title: string;
   companyName: string;
   location: { name: string } | null;
-  published: string;
-  url: string;
+  published: string | null;
+  url: string | null;
 };
 type CompaniesResponse = { jobs: Job[]; total: number; totalSearched: number; companiesSearched:number };
 type JobSearchResponse ={ jobs: Job[]; count: number;};
@@ -34,15 +34,14 @@ async function fetchCompanies(): Promise<CompaniesResponse | null> {
 
 
 export const Companies = () => {
-  const [data, setData] = useState<CompaniesResponse | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [searchInput, setSearchInput] = useState("");
   const [query, setQuery] = useState("");
   const [jobs, setJobs] = useState <JobSearchResponse | null> (null);
 
   const handleSearch = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setLoading(true)
     setQuery(searchInput)
 
     try{
@@ -55,11 +54,13 @@ export const Companies = () => {
      const parsed =  await res.json();
     setJobs(parsed)
       console.log(parsed)
+      setLoading(false)
       return
     
 
     }catch(error){
       console.error("error", error);
+      setLoading(false)
       return null
     }
     
@@ -84,17 +85,9 @@ export const Companies = () => {
           onChange={(e) => setSearchInput(e.target.value)}
           />
           <Button type="submit" className="glass-card">Search</Button>
+          
         </form>
 
-        {/*
-        <Button 
-        className="glass-card p-4"
-        type="submit" 
-        >
-          Show all Jobs 
-        </Button>
-
-        */}
 
       
   
@@ -111,14 +104,14 @@ export const Companies = () => {
           className="glass-card"
           key={i}
           >
-            <a href={job.url} className="block">
+            <a href={job.url ?? undefined} className="block">
               <div className="flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6">
-                <span className="font-medium">{job.company_name}</span>
+                <span className="font-medium">{job.companyName}</span>
                 <span>{job.title}</span>
                 <span className="text-sm opacity-80">
                   {job.location?.name ?? "Remote/Unspecified"}
                 </span>
-                <span className="text-xs opacity-70">{job.published}</span>
+                <span className="text-xs opacity-70">{job.published ?? ""}</span>
               </div>
             </a>
 
