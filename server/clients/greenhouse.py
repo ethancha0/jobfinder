@@ -1,7 +1,7 @@
 import requests
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import desc
+from sqlalchemy import desc, or_, and_
 
 
 from db.database import SessionLocal
@@ -23,13 +23,24 @@ def query_jobs(
     userQuery: str = Query(default="", description="Search query"),
     db: Session = Depends(get_db)
 ):
-    # Normalize DB results to match the shape returned by /alljobs
-    # (companies.tsx expects companyName, location.name, published, url).
+    keywords = [kw.strip() for kw in userQuery.split() if kw.strip()]
+
     rows = (
         db.query(Jobs, Company.name)
         .join(Company, Company.id == Jobs.company_id)
-        .filter(Jobs.title.ilike(f"%{userQuery}%"))
-        .order_by(desc(Jobs.published_at)) #order by date posted (descending)
+        .filter(
+            and_(
+                *[
+                    or_(
+                        Jobs.title.ilike(f"%{kw}%"),
+                        Company.name.ilike(f"%{kw}%"),
+                        Jobs.location_name.ilike(f"%{kw}%"),
+                    )
+                    for kw in keywords
+                ]
+            )
+        )
+        .order_by(desc(Jobs.published_at))
         .all()
     )
 
@@ -52,7 +63,6 @@ def query_jobs(
         "jobs": parsed_jobs,
         "count": len(parsed_jobs),
     }
-
 
 
 
