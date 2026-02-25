@@ -2,15 +2,42 @@
 
 import React, { useEffect, useState } from "react";
 import { getApiBaseUrl } from "../lib/apiBase";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+
 
 type Job = {
   title: string;
   companyName: string;
   location: { name: string } | null;
-  published: string;
-  url: string;
+  published: string | null;
+  url: string | null;
+  content: string | null;
 };
 type CompaniesResponse = { jobs: Job[]; total: number; totalSearched: number; companiesSearched:number };
+type JobSearchResponse ={ jobs: Job[]; count: number;};
+
+// date formatter for readability
+function formatPublished(published: string | null): string {
+  if (!published) return "Unknown";
+  const d = new Date(published);
+  if (Number.isNaN(d.getTime())) return published;
+
+  const absolute = new Intl.DateTimeFormat(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  }).format(d);
+
+  const diffDays = Math.round((d.getTime() - Date.now()) / 86_400_000);
+  const relative = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" }).format(
+    diffDays,
+    "day",
+  );
+
+  return `${absolute} (${relative})`;
+}
+
 
 async function fetchCompanies(): Promise<CompaniesResponse | null> {
   try {
@@ -26,55 +53,106 @@ async function fetchCompanies(): Promise<CompaniesResponse | null> {
   }
 }
 
+
+
 export const Companies = () => {
-  const [data, setData] = useState<CompaniesResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [searchInput, setSearchInput] = useState("");
+  const [query, setQuery] = useState("");
+  const [jobs, setJobs] = useState <JobSearchResponse | null> (null);
 
-  useEffect(() => {
-    let cancelled = false;
-    fetchCompanies().then((result) => {
-      if (cancelled) return;
-      setLoading(false);
-      if (result === null) {
-        setError("Failed to load companies");
-      } else {
-        setData(result);
+  const handleSearch = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true)
+    setQuery(searchInput)
+
+    try{
+      const apiBase = getApiBaseUrl();
+      const res = await fetch(`${apiBase}/greenhouse/queryjobs?userQuery=${encodeURIComponent(searchInput)}`);
+
+      if(!res.ok){
+        throw new Error("Failed to query jobs");
       }
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+     const parsed =  await res.json();
+    setJobs(parsed)
+      console.log(parsed)
+      setLoading(false)
+      return
+    
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
-  if (!data) return null;
+    }catch(error){
+      console.error("error", error);
+      setLoading(false)
+      return null
+    }
+    
+
+
+
+  };
+
 
   return (
+
+
     <div>
-      <h1>All Software Intern Positions: {data.total}</h1>
-      <p>Out of {data.totalSearched} jobs searched and {data.companiesSearched} companies</p>
-      <ul className="space-y-2">
-        {data.jobs.map((job, i) => (
+
+        <div className="flex flex-col items-center justify-center m-20">
+          <h1 className="text-4xl font-bold">Find your Dream Job</h1>
+          <p className="text-gray-600">Search through thousands of job opportunities right as they come out</p>
+
+          <form onSubmit={handleSearch}>
+              <Input 
+              type="search"
+              placeholder="Search by job title, company, or keyword..." 
+              className="p-8 w-md" 
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              />
+              <Button type="submit" className="glass-card">Search</Button>
+              
+          </form>
+
+        </div>
+        
+
+
+        {jobs && (
+
+        <div>
+          <div className="border border-t-1 border-gray-300 m-6"></div>
+
+      <h1 className="glass-card mb-2 text-gray-600">
+         Showing results for "{query}"
+         <p>{jobs.count} jobs found</p>
+      </h1>
+   
+
+
+      <ul className="space-y-2 p-4">
+        {jobs.jobs.map((job, i) => (
           <li 
-          className="border border-white p-2 rounded-md"
+          className="glass-card p-6"
           key={i}
           >
-            <a href={job.url} className="block">
-              <div className="flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6">
-                <span className="font-medium">{job.companyName}</span>
-                <span>{job.title}</span>
-                <span className="text-sm opacity-80">
+            <a href={job.url ?? undefined} className="block">
+              <div className=" gap-9 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6">
+                <p className="font-medium">{job.title}</p>
+                <p>{job.companyName}</p>
+                <p className="text-sm opacity-80">
                   {job.location?.name ?? "Remote/Unspecified"}
-                </span>
-                <span className="text-xs opacity-70">{job.published}</span>
+                </p>
+                <span className="text-xs opacity-70">Posted: {formatPublished(job.published)}</span>
               </div>
             </a>
 
           </li>
         ))}
       </ul>
+      </div>
+        )}
+
     </div>
+
   );
 };
