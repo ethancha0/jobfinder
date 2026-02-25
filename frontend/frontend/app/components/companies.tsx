@@ -86,28 +86,23 @@ export const Companies = () => {
           <Button type="submit" className="glass-card">Search</Button>
         </form>
 
+        {/*
         <Button 
         className="glass-card p-4"
         type="submit" 
-        //onClick={() => setShowJobs(true)}
         >
           Show all Jobs 
         </Button>
 
+        */}
+
       
-      {/*query ? (
-        <p className="glass-card mt-4 mb-6">
-          Showing {filteredJobs.length} result{filteredJobs.length === 1 ? "" : "s"}{" "}
-          for &quot;{query}&quot;
-        </p>
-      ) : null*/}
-        
   
 
         {jobs && (
         <div>
       <h1 className="glass-card mb-2">
-         Showing results for {query}
+         Showing results for "{query}"
       </h1>
       <p className="glass-card mb-10"> {jobs.count} jobs found </p>
       <ul className="space-y-2">
