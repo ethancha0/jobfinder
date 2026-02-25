@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+import logging
 import os
 import threading
 
@@ -11,6 +12,8 @@ from db.database import engine
 from db.models import Base
 from db.seed import seed_companies
 from db.seed_jobs import seed_recent_jobs
+
+logger = logging.getLogger(__name__)
 
 Base.metadata.create_all(bind=engine) # autocreates table on startup
 
@@ -28,10 +31,18 @@ async def lifespan(_: FastAPI):
         except ValueError:
             days = 14
 
+        def _seed_recent_jobs_daemon(*, days: int) -> None:
+            try:
+                seed_recent_jobs(days=days)
+            except Exception:
+                # Exceptions in daemon threads can be easy to miss in production logs.
+                logger.exception("Daemon thread seed_recent_jobs(days=%s) failed", days)
+
         threading.Thread(
-            target=seed_recent_jobs,
+            target=_seed_recent_jobs_daemon,
             kwargs={"days": days},
             daemon=True,
+            name="seed_recent_jobs_daemon",
         ).start()
     yield
 
