@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { getApiBaseUrl } from "../lib/apiBase";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import RotatingLoadingMessage from "@/components/rotating-loading";
 
 
 type Job = {
@@ -30,10 +31,16 @@ function formatPublished(published: string | null): string {
   }).format(d);
 
   const diffDays = Math.round((d.getTime() - Date.now()) / 86_400_000);
-  const relative = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" }).format(
-    diffDays,
-    "day",
-  );
+  const diffHours = Math.round((d.getTime() - Date.now()) / 36_00_000);
+
+  const rtf = new Intl.RelativeTimeFormat(undefined,{numeric: "auto"} );
+
+  const relative = 
+    Math.abs(diffDays) > 1
+    ? rtf.format(diffDays, "day")
+    : rtf.format(diffHours, "hour");
+
+
 
   return `${absolute} (${relative})`;
 }
@@ -96,7 +103,6 @@ export const Companies = () => {
 
 
     <div>
-
         <div className="flex flex-col items-center justify-center m-20">
           <h1 className="text-4xl font-bold">Find your Dream Job</h1>
           <p className="text-gray-600">Search through thousands of job opportunities right as they come out</p>
@@ -112,6 +118,12 @@ export const Companies = () => {
               <Button type="submit" className="glass-card">Search</Button>
               
           </form>
+          <div className="mt-5">
+            {loading && (
+              <RotatingLoadingMessage/>   
+            )}
+          </div>
+          
 
         </div>
         
