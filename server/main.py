@@ -7,6 +7,7 @@ import threading
 
 from clients.greenhouse import router as greenhouse_router
 from routers.companies import router as company_router
+from routers.internal import router as internal_router
 
 from db.database import engine
 from db.models import Base
@@ -60,6 +61,7 @@ app.add_middleware(
 
 app.include_router(greenhouse_router, prefix="/greenhouse", tags=["greenhouse"])
 app.include_router(company_router, prefix="/companies", tags=["companies"])
+app.include_router(internal_router, prefix="/internal", tags=["internal"])
 
 @app.get("/")
 def read_root():
