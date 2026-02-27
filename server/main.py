@@ -49,7 +49,7 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-origins = ["http://localhost:3000", "https://jobfinder-two-lake.vercel.app"]
+origins = ["http://localhost:3000", "https://jobfinder-two-lake.vercel.app","https://www.ethansjobfinder.com"]
 
 app.add_middleware(
     CORSMiddleware,
