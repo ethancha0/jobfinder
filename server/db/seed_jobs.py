@@ -33,6 +33,7 @@ def seed_recent_jobs(days: int = 14) -> dict:
         with engine.begin() as conn:
             conn.execute(text("ALTER TABLE jobs ALTER COLUMN greenhouse_job_id TYPE BIGINT"))
             conn.execute(text("ALTER TABLE jobs ADD COLUMN IF NOT EXISTS content TEXT"))
+            conn.execute(text("ALTER TABLE jobs ADD COLUMN IF NOT EXISTS emailed BOOLEAN DEFAULT FALSE"))
     except Exception:
         # Ignore if table/column doesn't exist yet or DB doesn't support it
         pass
@@ -50,6 +51,7 @@ def seed_recent_jobs(days: int = 14) -> dict:
         upserted = 0
         skipped_old = 0
         failures: list[dict] = []
+        jobs_to_email = []
 
         for company in companies:
             url = f"https://boards-api.greenhouse.io/v1/boards/{company.board_token}/jobs?content=true"
@@ -106,8 +108,9 @@ def seed_recent_jobs(days: int = 14) -> dict:
                         existing.url = absolute_url
                         existing.is_active = True
                         existing.content = content
+                        job_record = existing
                     else:
-                        db.add(Jobs(
+                        job_record = Jobs(
                             company_id=company.id,
                             greenhouse_job_id=gh_id,
                             title=title,
@@ -116,7 +119,20 @@ def seed_recent_jobs(days: int = 14) -> dict:
                             url=absolute_url,
                             is_active=True,
                             content=content,
-                        ))
+                            emailed=False,
+                        )
+                        db.add(job_record)
+
+                    
+                    if not job_record.emailed:
+                        jobs_to_email.append({
+                            "company": company.name,
+                            "greenhouse_job_id": gh_id,
+                            "title": title,
+                            "url": absolute_url,
+                        })
+                        
+
 
                     upserted += 1
 
@@ -139,6 +155,7 @@ def seed_recent_jobs(days: int = 14) -> dict:
 
         return {
             "companies_checked": len(companies),
+            "jobs_to_email": len(jobs_to_email),
             "upserted_recent_jobs": upserted,
             "skipped_old_jobs": skipped_old,
             "failures": failures[:25],
