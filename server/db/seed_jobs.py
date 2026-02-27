@@ -7,6 +7,8 @@ from sqlalchemy.orm import Session
 from db.database import Base, SessionLocal, engine
 from db.models import Company, Jobs
 
+from notifications.emails import JobEmailItem, send_jobs_email_notification
+
 
 GREENHOUSE_TIMEOUT = (5, 20)  # (connect, read)
 
@@ -52,8 +54,10 @@ def seed_recent_jobs(days: int = 14) -> dict:
         skipped_old = 0
         failures: list[dict] = []
         jobs_to_email = []
+        jobs_emailed = 0
 
         for company in companies:
+            
             url = f"https://boards-api.greenhouse.io/v1/boards/{company.board_token}/jobs?content=true"
 
             try:
@@ -126,6 +130,7 @@ def seed_recent_jobs(days: int = 14) -> dict:
                     
                     if not job_record.emailed:
                         jobs_to_email.append({
+                            "company_id": company.id,
                             "company": company.name,
                             "greenhouse_job_id": gh_id,
                             "title": title,
@@ -153,9 +158,44 @@ def seed_recent_jobs(days: int = 14) -> dict:
                 })
                 continue
 
+
+        if jobs_to_email:
+            try:
+                payload = [
+                    JobEmailItem(
+                        greenhouse_job_id=job["greenhouse_job_id"],
+                        title=job["title"],
+                        url=job["url"],
+                        company=job["company"],
+                    )
+                    for job in jobs_to_email
+                ]
+                send_jobs_email_notification(payload)
+
+                for job in jobs_to_email:
+                    (
+                        db.query(Jobs)
+                        .filter(
+                            Jobs.company_id == job["company_id"],
+                            Jobs.greenhouse_job_id == job["greenhouse_job_id"],
+                        )
+                        .update({Jobs.emailed: True}, synchronize_session=False)
+                    )
+                db.commit()
+                jobs_emailed = len(jobs_to_email)
+
+            except Exception as e:
+                db.rollback()
+                failures.append({
+                    "error": f"email_send_failed: {str(e)}",
+                })
+
+
+
         return {
             "companies_checked": len(companies),
             "jobs_to_email": len(jobs_to_email),
+            "jobs_emailed": jobs_emailed,
             "upserted_recent_jobs": upserted,
             "skipped_old_jobs": skipped_old,
             "failures": failures[:25],
