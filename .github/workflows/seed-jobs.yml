@@ -1,0 +1,19 @@
+name: Seed jobs (every 30 min)
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Call internal seed endpoint
+        env:
+          API_BASE_URL: ${{ secrets.API_BASE_URL }}
+          SEED_CRON_TOKEN: ${{ secrets.SEED_CRON_TOKEN }}
+        run: |
+          curl -fsS -X POST "${API_BASE_URL}/internal/seed" \
+            -H "X-Seed-Token: ${SEED_CRON_TOKEN}"
