@@ -7,8 +7,7 @@ from sqlalchemy.orm import Session
 from db.database import Base, SessionLocal, engine
 from db.models import Company, Jobs
 
-from notifications.emails import JobEmailItem, send_jobs_email_notification
-
+from notifications.emails import JobEmailItem, send_jobs_email
 
 GREENHOUSE_TIMEOUT = (5, 20)  # (connect, read)
 
@@ -170,7 +169,7 @@ def seed_recent_jobs(days: int = 14) -> dict:
                     )
                     for job in jobs_to_email
                 ]
-                send_jobs_email_notification(payload)
+                send_jobs_email(payload)
 
                 for job in jobs_to_email:
                     (

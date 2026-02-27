@@ -30,7 +30,7 @@ def seed_now(x_seed_token: str | None = Header(default=None)):
     _require_seed_token(x_seed_token) #raises errors if needed
 
     if not _within_pacific_window():
-        return {"skipped": True, "reason": "outside_9_to_5_pst"}
+        return {"skipped": True, "reason": "outside_6_to_5_pst"}
     
     days = int(os.getenv("SEED_JOBS_DAYS", "1")) #reads env var. 1 is the fallback
     result = seed_recent_jobs(days=days)
