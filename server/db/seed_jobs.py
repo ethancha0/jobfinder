@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from db.database import Base, SessionLocal, engine
 from db.models import Company, Jobs
 
+from notifications.emails import JobEmailItem, send_jobs_email
 
 GREENHOUSE_TIMEOUT = (5, 20)  # (connect, read)
 
@@ -33,6 +34,7 @@ def seed_recent_jobs(days: int = 14) -> dict:
         with engine.begin() as conn:
             conn.execute(text("ALTER TABLE jobs ALTER COLUMN greenhouse_job_id TYPE BIGINT"))
             conn.execute(text("ALTER TABLE jobs ADD COLUMN IF NOT EXISTS content TEXT"))
+            conn.execute(text("ALTER TABLE jobs ADD COLUMN IF NOT EXISTS emailed BOOLEAN DEFAULT FALSE"))
     except Exception:
         # Ignore if table/column doesn't exist yet or DB doesn't support it
         pass
@@ -50,8 +52,11 @@ def seed_recent_jobs(days: int = 14) -> dict:
         upserted = 0
         skipped_old = 0
         failures: list[dict] = []
+        jobs_to_email = []
+        jobs_emailed = 0
 
         for company in companies:
+            
             url = f"https://boards-api.greenhouse.io/v1/boards/{company.board_token}/jobs?content=true"
 
             try:
@@ -106,8 +111,9 @@ def seed_recent_jobs(days: int = 14) -> dict:
                         existing.url = absolute_url
                         existing.is_active = True
                         existing.content = content
+                        job_record = existing
                     else:
-                        db.add(Jobs(
+                        job_record = Jobs(
                             company_id=company.id,
                             greenhouse_job_id=gh_id,
                             title=title,
@@ -116,7 +122,21 @@ def seed_recent_jobs(days: int = 14) -> dict:
                             url=absolute_url,
                             is_active=True,
                             content=content,
-                        ))
+                            emailed=False,
+                        )
+                        db.add(job_record)
+
+                    
+                    if not job_record.emailed:
+                        jobs_to_email.append({
+                            "company_id": company.id,
+                            "company": company.name,
+                            "greenhouse_job_id": gh_id,
+                            "title": title,
+                            "url": absolute_url,
+                        })
+                        
+
 
                     upserted += 1
 
@@ -137,8 +157,44 @@ def seed_recent_jobs(days: int = 14) -> dict:
                 })
                 continue
 
+
+        if jobs_to_email:
+            try:
+                payload = [
+                    JobEmailItem(
+                        greenhouse_job_id=job["greenhouse_job_id"],
+                        title=job["title"],
+                        url=job["url"],
+                        company=job["company"],
+                    )
+                    for job in jobs_to_email
+                ]
+                send_jobs_email(payload)
+
+                for job in jobs_to_email:
+                    (
+                        db.query(Jobs)
+                        .filter(
+                            Jobs.company_id == job["company_id"],
+                            Jobs.greenhouse_job_id == job["greenhouse_job_id"],
+                        )
+                        .update({Jobs.emailed: True}, synchronize_session=False)
+                    )
+                db.commit()
+                jobs_emailed = len(jobs_to_email)
+
+            except Exception as e:
+                db.rollback()
+                failures.append({
+                    "error": f"email_send_failed: {str(e)}",
+                })
+
+
+
         return {
             "companies_checked": len(companies),
+            "jobs_to_email": len(jobs_to_email),
+            "jobs_emailed": jobs_emailed,
             "upserted_recent_jobs": upserted,
             "skipped_old_jobs": skipped_old,
             "failures": failures[:25],

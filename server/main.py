@@ -8,6 +8,7 @@ import threading
 from clients.greenhouse import router as greenhouse_router
 from routers.companies import router as company_router
 from routers.internal import router as internal_router
+from notifications.emails import router as emails_router
 
 from db.database import engine
 from db.models import Base
@@ -28,7 +29,7 @@ async def lifespan(_: FastAPI):
     seed_jobs = os.getenv("SEED_JOBS_ON_STARTUP", "1").strip().lower() not in {"0", "false", "no", "off"}
     if seed_jobs:
         try:
-            days = int(os.getenv("SEED_JOBS_DAYS", "14"))
+            days = int(os.getenv("SEED_JOB_DAYS", "14"))
         except ValueError:
             days = 14
 
@@ -62,6 +63,7 @@ app.add_middleware(
 app.include_router(greenhouse_router, prefix="/greenhouse", tags=["greenhouse"])
 app.include_router(company_router, prefix="/companies", tags=["companies"])
 app.include_router(internal_router, prefix="/internal", tags=["internal"])
+app.include_router(emails_router, prefix="/emails", tags=["emails"])
 
 @app.get("/")
 def read_root():
