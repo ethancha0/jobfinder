@@ -22,8 +22,8 @@ def _require_seed_token(x_seed_token: str | None) -> None:
     
 def _within_pacific_window() -> bool:
     now = datetime.now(ZoneInfo("America/Los_Angeles"))
-    # 9am to 5pm
-    return ( 9 <= now.hour < 23)
+    # 6am to 5pm
+    return ( 6 <= now.hour < 17)
 
 @router.post("/seed", include_in_schema=False)
 def seed_now(x_seed_token: str | None = Header(default=None)):
