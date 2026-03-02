@@ -5,6 +5,10 @@ import { getApiBaseUrl } from "../lib/apiBase";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import RotatingLoadingMessage from "@/components/rotating-loading";
+import StatBubble from "@/components/ui/statbubble";
+import { Briefcase, Building, BuildingIcon, PersonStanding, PersonStandingIcon } from "lucide-react";
+import Squares from "@/components/Squares";
+import PixelSnow from "@/components/PixelSnow";
 
 
 type Job = {
@@ -61,8 +65,11 @@ async function fetchCompanies(): Promise<CompaniesResponse | null> {
 }
 
 
+type CompaniesProps = {
+  filters?: React.ReactNode;
+};
 
-export const Companies = () => {
+export const Companies = ({ filters }: CompaniesProps) => {
   const [loading, setLoading] = useState(false);
   const [searchInput, setSearchInput] = useState("");
   const [query, setQuery] = useState("");
@@ -103,65 +110,114 @@ export const Companies = () => {
 
 
     <div>
-        <div className="flex flex-col items-center justify-center m-20">
-          <h1 className="text-4xl font-bold">Find your Dream Job</h1>
-          <p className="text-gray-600">Search through thousands of job opportunities right as they come out</p>
-
-          <form onSubmit={handleSearch}>
-              <Input 
-              type="search"
-              placeholder="Search by job title, company, or keyword..." 
-              className="p-8 w-md" 
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              />
-              <Button type="submit" className="glass-card">Search</Button>
-              
-          </form>
-          <div className="mt-5">
-            {loading && (
-              <RotatingLoadingMessage/>   
-            )}
+        <section className="relative left-1/2 right-1/2 mb-6 w-screen -translate-x-1/2 overflow-hidden border-b border-gray-300">
+          <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+              <PixelSnow 
+                color="#ffffff"
+                flakeSize={0.10}
+                minFlakeSize={1.25}
+                pixelResolution={400}
+                speed={1}
+                density={0.3}
+                direction={125}
+                brightness={1}
+                depthFade={8}
+                farPlane={20}
+                gamma={0.4545}
+                variant="square"
+            />
+            <div className="absolute inset-0 bg-slate-100/90" />
           </div>
-          
 
-        </div>
+          <div className="relative z-10 mx-auto max-w-7xl px-4 py-16">
+            <div className="flex flex-col items-center justify-center">
+              <h1 className="text-4xl font-bold">Find your Dream Job</h1>
+              <p className="p-2 text-gray-600">New jobs updated every 30 minutes</p>
+
+              <form onSubmit={handleSearch} className="flex w-full max-w-2xl items-center gap-3">
+                <Input
+                  type="search"
+                  placeholder="Search by job title, company, or keyword..."
+                  className="p-6"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                />
+
+                <Button type="submit" className="glass-card">Search</Button>
+              </form>
+              <div className="mt-5">
+                {loading && (
+                  <RotatingLoadingMessage/>
+                )}
+              </div>
+
+              {!jobs && (
+                <div className="mt-10 flex flex-wrap justify-center gap-10">
+                  <StatBubble
+                    Icon={BuildingIcon}
+                    stat={500}
+                    caption="Companies Hiring"
+                  />
+
+                  <StatBubble
+                    Icon={Briefcase}
+                    stat={1200}
+                    caption="Active jobs"
+                  />
+
+                  <StatBubble
+                    Icon={PersonStandingIcon}
+                    stat={50}
+                    caption="Job Seekers"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
         
 
 
         {jobs && (
+          <div className="border-t border-gray-300 pt-6">
+            <div
+              className={`grid grid-cols-1 gap-6 lg:items-start ${
+                filters
+                  ? "lg:grid-cols-[260px_minmax(0,1fr)]"
+                  : "lg:grid-cols-[minmax(0,820px)] lg:justify-center"
+              }`}
+            >
+              {filters && <aside className="w-full">{filters}</aside>}
 
-        <div>
-          <div className="border border-t-1 border-gray-300 m-6"></div>
+              <div className="min-w-0">
+                <h1 className="glass-card mb-2 text-gray-600">
+                  Showing results for "{query}"
+                  <p>{jobs.count} jobs found</p>
+                </h1>
 
-      <h1 className="glass-card mb-2 text-gray-600">
-         Showing results for "{query}"
-         <p>{jobs.count} jobs found</p>
-      </h1>
-   
+                <ul className="space-y-2 p-4">
+                  {jobs.jobs.map((job, i) => (
+                    <li 
+                    className="glass-card p-6"
+                    key={i}
+                    >
+                      <a href={job.url ?? undefined} className="block">
+                        <div className=" gap-9 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6">
+                          <p className="font-medium">{job.title}</p>
+                          <p>{job.companyName}</p>
+                          <p className="text-sm opacity-80">
+                            {job.location?.name ?? "Remote/Unspecified"}
+                          </p>
+                          <span className="text-xs opacity-70">Posted: {formatPublished(job.published)}</span>
+                        </div>
+                      </a>
 
-
-      <ul className="space-y-2 p-4">
-        {jobs.jobs.map((job, i) => (
-          <li 
-          className="glass-card p-6"
-          key={i}
-          >
-            <a href={job.url ?? undefined} className="block">
-              <div className=" gap-9 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6">
-                <p className="font-medium">{job.title}</p>
-                <p>{job.companyName}</p>
-                <p className="text-sm opacity-80">
-                  {job.location?.name ?? "Remote/Unspecified"}
-                </p>
-                <span className="text-xs opacity-70">Posted: {formatPublished(job.published)}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
-            </a>
-
-          </li>
-        ))}
-      </ul>
-      </div>
+            </div>
+          </div>
         )}
 
     </div>
