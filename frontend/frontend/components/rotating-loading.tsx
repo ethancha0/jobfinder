@@ -3,7 +3,7 @@ import {useState, useEffect} from 'react'
 
 const messages =[
     "Seeding fresh jobs...",
-    "Scanning through 267 companies...",
+    "Scanning through 500+ companies...",
     "Crunching the numbers...",
     "Almost there..."
 

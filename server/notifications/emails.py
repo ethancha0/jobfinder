@@ -45,7 +45,7 @@ def send_jobs_email_notification(jobs: list[JobEmailItem]) -> dict:
     params = {
         "from": from_email,
         "to": to_emails,
-        "subject": "Ethan's Job List",
+        "subject": f"{len(jobs)} New Job(s).",
         "html": html_body,
     }
 
@@ -68,7 +68,7 @@ def send_mail():
     params = {
         "from": from_email,
         "to": to_emails,
-        "subject": "Ethan's Email Bot",
+        "subject": "New Jobs found!",
         "html": "<strong>YAYY IT WORKS daisuke da yo</strong>",
     }
 
