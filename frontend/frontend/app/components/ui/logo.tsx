@@ -26,7 +26,7 @@ export function Logo({ showTagline = true, size = 'md' }: LogoProps) {
         <div className={`absolute -bottom-1 -right-1 ${s.dot} rounded-full bg-green-500 border-2 border-background`}></div>
       </div>
       <div>
-        <h1 className={`${s.text} font-bold bg-gradient-to-r from-blue-950 to-blue-800 bg-clip-text text-transparent`}>
+        <h1 className={`${s.text} font-bold bg-gradient-to-r from-blue-950 to-blue-900 bg-clip-text text-transparent`}>
           JobFinder
         </h1>
         {showTagline && (
