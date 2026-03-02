@@ -20,13 +20,13 @@ export function Logo({ showTagline = true, size = 'md' }: LogoProps) {
     <div className="inline-flex w-fit items-center gap-3">
       <div className="relative">
        
-        <div className={`${s.icon} rounded-xl bg-gradient-to-br from-blue-950 via-blue-900 to-gray-700 flex items-center justify-center shadow-lg`}>
+        <div className={`${s.icon} rounded-xl bg-gradient-to-br from-blue-950 via-black to-gray-700 flex items-center justify-center shadow-lg`}>
           <Briefcase className={`${s.briefcase} text-white`} />
         </div>
         <div className={`absolute -bottom-1 -right-1 ${s.dot} rounded-full bg-green-500 border-2 border-background`}></div>
       </div>
       <div>
-        <h1 className={`${s.text} font-bold bg-gradient-to-r from-blue-950 to-blue-900 bg-clip-text text-transparent`}>
+        <h1 className={`${s.text} font-bold bg-gradient-to-r from-blue-950 to-black bg-clip-text text-transparent`}>
           JobFinder
         </h1>
         {showTagline && (

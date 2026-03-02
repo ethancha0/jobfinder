@@ -13,14 +13,13 @@ import React from 'react'
 const Filters = () => {
   return (
     <div className="lg:sticky lg:top-6">
-        <h1 className="p-4 font-semibold">Filters</h1>
 
         <div className="w-full rounded-2xl border border-gray-300 p-8">
-            <p className="font-semibold">Job Type</p>
-            <DropdownMenu>
+            <p className="font-semibold">Filters</p>
+    <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <div className="flex items-center">
-            <Button variant="outline">All Types
+            <Button variant="outline">Location
                 <ArrowDown size={15}/> 
             </Button>
             
@@ -29,91 +28,29 @@ const Filters = () => {
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-40 " align="start">
         <DropdownMenuGroup>
-          <DropdownMenuLabel>Entry</DropdownMenuLabel>
+    
           <DropdownMenuItem>
-            Full-Time
-           
+            Remote
           </DropdownMenuItem>
           <DropdownMenuItem>
-            Part-Time
-         
+            San Francisco, CA
           </DropdownMenuItem>
           <DropdownMenuItem>
-            Internship
+            Los Angeles, CA
+          </DropdownMenuItem>
+           <DropdownMenuItem>
+            Seattle, WA
+          </DropdownMenuItem>
+           <DropdownMenuItem>
+            New York City, NY
+          </DropdownMenuItem>
           
-          </DropdownMenuItem>
         </DropdownMenuGroup>
         
     
       </DropdownMenuContent>
     </DropdownMenu>
 
-
-
-    <p className="font-semibold">Experiance Level</p>
-            <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <div className="flex items-center">
-            <Button variant="outline">All Types
-                <ArrowDown size={15}/> 
-            </Button>
-            
-        </div>
-        
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-40" align="start">
-        <DropdownMenuGroup>
-          <DropdownMenuLabel>Entry</DropdownMenuLabel>
-          <DropdownMenuItem>
-            Full-Time
-           
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            Part-Time
-         
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            Internship
-          
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
-        
-    
-      </DropdownMenuContent>
-    </DropdownMenu>
-
-
-    <p className="font-semibold">Location</p>
-            <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <div className="flex items-center">
-            <Button variant="outline">All Types
-                <ArrowDown size={15}/> 
-            </Button>
-            
-        </div>
-        
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-40" align="start">
-        <DropdownMenuGroup>
-          <DropdownMenuLabel>Entry</DropdownMenuLabel>
-          <DropdownMenuItem>
-            Full-Time
-           
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            Part-Time
-         
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            Internship
-          
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
-        
-    
-      </DropdownMenuContent>
-    </DropdownMenu>
 
 
 

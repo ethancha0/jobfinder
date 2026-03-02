@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Logo } from "./components/ui/logo";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { Banner } from "./components/banner";
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,18 +27,32 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+
   return (
     <html lang="en">
 
-      <header className="p-4 border border-b-3">
+      <header className="p-4 border border-b-3 flex items-center justify-between px-6">
     
           <Logo/>
+
+          <div className="flex items-center gap-3">
+            <Link href="/auth">
+              <Button type="button">Sign in</Button>
+            </Link>
+            
+            <Link href="/auth">
+              <Button type="button">Get Started</Button>
+            </Link>
+            
+          </div>
+          
 
       </header>
 
 
-
-
+       <Banner storageKey="dashboard-welcome" chip="Hey There!" className="mt-4">
+        JobFinder is in Alpha. Users may experiance bugs or unexpected behavior
+      </Banner>
 
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
