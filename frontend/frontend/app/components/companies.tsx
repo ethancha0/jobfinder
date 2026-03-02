@@ -72,8 +72,27 @@ type CompaniesProps = {
 export const Companies = ({ filters }: CompaniesProps) => {
   const [loading, setLoading] = useState(false);
   const [searchInput, setSearchInput] = useState("");
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [query, setQuery] = useState("");
   const [jobs, setJobs] = useState <JobSearchResponse | null> (null);
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
+
+  const animatedPlaceholders = [
+    "Search by job title, company, or keyword...",
+    'Try "Data Science"',
+    'Try "Product Manager"',
+    'Try "Software Intern"',
+  ];
+
+  useEffect(() => {
+    if (searchInput.trim().length > 0 || isSearchFocused) return;
+
+    const intervalId = window.setInterval(() => {
+      setPlaceholderIndex((prev) => (prev + 1) % animatedPlaceholders.length);
+    }, 2200);
+
+    return () => window.clearInterval(intervalId);
+  }, [searchInput, isSearchFocused, animatedPlaceholders.length]);
 
   const handleSearch = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -135,13 +154,26 @@ export const Companies = ({ filters }: CompaniesProps) => {
               <p className="p-2 text-gray-600">New jobs updated every 30 minutes</p>
 
               <form onSubmit={handleSearch} className="flex w-full max-w-2xl items-center gap-3">
-                <Input
-                  type="search"
-                  placeholder="Search by job title, company, or keyword..."
-                  className="p-6"
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                />
+                <div className="relative flex-1">
+                  <Input
+                    type="search"
+                    placeholder=""
+                    className="p-6"
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    onFocus={() => setIsSearchFocused(true)}
+                    onBlur={() => setIsSearchFocused(false)}
+                    aria-label="Search jobs"
+                  />
+                  {!isSearchFocused && searchInput.trim().length === 0 && (
+                    <span
+                      aria-hidden="true"
+                      className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-500/90 transition-opacity duration-300 animate-pulse"
+                    >
+                      {animatedPlaceholders[placeholderIndex]}
+                    </span>
+                  )}
+                </div>
 
                 <Button type="submit" className="glass-card">Search</Button>
               </form>
