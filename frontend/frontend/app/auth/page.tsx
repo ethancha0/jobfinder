@@ -2,8 +2,8 @@ import React from 'react'
 
 const page = () => {
   return (
-    <div>
-      
+    <div className="flex justify-center mt-30">
+      Auth coming very soon :)
     </div>
   )
 }
