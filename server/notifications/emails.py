@@ -45,7 +45,7 @@ def send_jobs_email_notification(jobs: list[JobEmailItem]) -> dict:
     params = {
         "from": from_email,
         "to": to_emails,
-        "subject":  f"<p>{len(jobs)} New Job(s).</p>",
+        "subject": f"{len(jobs)} New Job(s).",
         "html": html_body,
     }
 

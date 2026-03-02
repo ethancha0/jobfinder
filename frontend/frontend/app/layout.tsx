@@ -27,41 +27,31 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-
   return (
     <html lang="en">
-
-      <header className="p-4 border border-b-3 flex items-center justify-between px-6">
-    
-          <Logo/>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        <header className="p-4 border border-b-3 flex items-center justify-between px-6">
+          <Logo />
 
           <div className="flex items-center gap-3">
             <Link href="/auth">
               <Button type="button">Sign in</Button>
             </Link>
-            
+
             <Link href="/auth">
               <Button type="button">Get Started</Button>
             </Link>
-            
           </div>
-          
+        </header>
 
-      </header>
+        <Banner storageKey="dashboard-welcome" chip="Hey There!" className="mt-4">
+          JobFinder is in Alpha. Users may experience bugs or unexpected behavior
+        </Banner>
 
-
-       <Banner storageKey="dashboard-welcome" chip="Hey There!" className="mt-4">
-        JobFinder is in Alpha. Users may experiance bugs or unexpected behavior
-      </Banner>
-
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
         {children}
       </body>
-
-      
-
     </html>
   );
 }
