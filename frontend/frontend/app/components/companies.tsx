@@ -152,11 +152,12 @@ export const Companies = ({ filters }: CompaniesProps) => {
 
           <div className="relative z-10 mx-auto max-w-7xl px-4 py-16">
             <div className="flex flex-col items-center justify-center">
-              <h1 className="text-4xl font-bold">Find your Dream Job</h1>
+              <h1 className="text-6xl font-bold">Find your Dream Job</h1>
               <p className="p-2 text-gray-600">New jobs updated every 30 minutes</p>
+              
 
-              <form onSubmit={handleSearch} className="flex w-full max-w-2xl items-center gap-3">
-                <div className="relative flex-1">
+              <form onSubmit={handleSearch} className="flex w-full max-w-2xl items-center gap-3 mt-10">
+                <div className=" flex-1 glass-card">
                   <Input
                     type="search"
                     placeholder=""
@@ -185,6 +186,7 @@ export const Companies = ({ filters }: CompaniesProps) => {
                 )}
               </div>
 
+              <h1 className="mt-20 p-4 text-gray-500 text-xl">Trusted by teams hiring at </h1>
               <div className="flex gap-20">
                 <RotatingCompanies startOffset={0} />
                 <RotatingCompanies startOffset={1} />
