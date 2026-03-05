@@ -9,6 +9,8 @@ import StatBubble from "@/components/ui/statbubble";
 import { Briefcase, Building, BuildingIcon, PersonStanding, PersonStandingIcon } from "lucide-react";
 import Squares from "@/components/Squares";
 import PixelSnow from "@/components/PixelSnow";
+import CompanyLogos from "@/components/rotating-companies";
+import RotatingCompanies from "@/components/rotating-companies";
 
 
 type Job = {
@@ -182,6 +184,14 @@ export const Companies = ({ filters }: CompaniesProps) => {
                   <RotatingLoadingMessage/>
                 )}
               </div>
+
+              <div className="flex gap-20">
+                <RotatingCompanies startOffset={0} />
+                <RotatingCompanies startOffset={1} />
+                <RotatingCompanies startOffset={2} />
+
+              </div>
+           
 
               {!jobs && (
                 <div className="mt-10 flex flex-wrap justify-center gap-10">
