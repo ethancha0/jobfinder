@@ -25,7 +25,7 @@ const StatBubble = ({stat, caption, Icon}: StatBubbleProps) => {
                 threshold={0.1}
                 delay={0}
                 >
-                <div className="flex flex-col justify-center  items-center border-2 border-gray-300 rounded-2xl p-4 w-50">
+                <div className="flex flex-col justify-center  items-center border-2 border-gray-300 rounded-2xl p-4 w-70">
                     <div className="p-2 bg-blue-50 rounded-xl">
                     <Icon/>  
                 </div>
