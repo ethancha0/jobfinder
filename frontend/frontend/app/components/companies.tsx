@@ -193,8 +193,8 @@ export const Companies = ({ filters }: CompaniesProps) => {
 
                   <StatBubble
                     Icon={Briefcase}
-                    stat={1200}
-                    caption="Active jobs"
+                    stat={20000}
+                    caption="Active Jobs"
                   />
 
                   <StatBubble
