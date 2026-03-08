@@ -4,15 +4,6 @@ import React, { useEffect, useState } from 'react'
 import BlurText from './BlurText'
 
 
-/*
-const logos =[
-
-  "Stripe",
-  "Amazon",
-  "Walmart"
-]
-*/
-
 const logos = [
   "/company-logos/stripe.svg",
   "/company-logos/duolingo.svg",
@@ -56,16 +47,6 @@ const RotatingCompanies = ({ startOffset = 0 }: RotatingCompaniesProps) => {
   return (
     <div>
         <div>
-          {/*
-
-         
-            <BlurText 
-              key={logos[index]} 
-              text={`${logos[index]}`}
-              direction="bottom"
-              stepDuration={0.2}
-              />
- */}
           {currentLogo && (
           <BlurText key={`${currentLogo}-${index}`} className="items-center justify-center">
             <img
